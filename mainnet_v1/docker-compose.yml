@@ -5,7 +5,7 @@ services:
   gw-readonly:
     container_name: gw-mainnet_v1-readonly
     image: ghcr.io/godwokenrises/godwoken-prebuilds:1.7.1-poly1.5.0
-    expose: [8119, 8219]
+    expose: [ 8119, 8219 ]
     healthcheck:
       test: /bin/gw-healthcheck.sh
       start_period: 10s
@@ -14,12 +14,12 @@ services:
       retries: 100000
     working_dir: /deploy
     volumes:
-    - ./chain-data/readonly/:/mnt/
-    - ./gw-mainnet_v1-config-readonly.toml:/deploy/config.toml
-    - ./db.toml:/deploy/db.toml:ro
+      - ./chain-data/readonly/:/mnt/
+      - ./gw-mainnet_v1-config-readonly.toml:/deploy/config.toml
+      - ./db.toml:/deploy/db.toml:ro
     environment:
-    # other log envs: ,gw_generator=debug,gw_chain=debug
-    - RUST_LOG=info
+      # other log envs: ,gw_generator=debug,gw_chain=debug
+      - RUST_LOG=info
     command: godwoken
     deploy:
       restart_policy:
@@ -28,29 +28,29 @@ services:
 
   postgres:
     image: postgres:alpine
-    expose: [5432]
+    expose: [ 5432 ]
     environment:
       POSTGRES_DB: web3-indexer-db
       POSTGRES_USER: your_db_user_name
       POSTGRES_PASSWORD: your_password
     volumes:
-    - ./chain-data/postgresql/data:/var/lib/postgresql/data
-  
+      - ./chain-data/postgresql/data:/var/lib/postgresql/data
+
   redis:
     image: redis:bullseye
     user: redis:redis
     volumes:
-    - ./chain-data/redis-data:/data
+      - ./chain-data/redis-data:/data
 
   web3:
     image: ghcr.io/godwokenrises/godwoken-web3-prebuilds:v1.8.6
     healthcheck:
       test: curl http://127.0.0.1:8024 || exit 1
     volumes:
-    - ./web3.env:/godwoken-web3/packages/api-server/.env
+      - ./web3.env:/godwoken-web3/packages/api-server/.env
     working_dir: /godwoken-web3
     command: bash -c 'set -ex ; yarn knex migrate:latest && yarn start:prod'
-    ports: [8024:8024]
+    ports: [ 8024:8024 ]
     depends_on:
       redis:
         condition: service_started
@@ -62,11 +62,12 @@ services:
   web3-indexer:
     image: ghcr.io/godwokenrises/godwoken-web3-indexer-prebuilds:v1.8.6
     volumes:
-    - ./web3-indexer-config.toml:/var/lib/web3-indexer/indexer-config.toml
+      - ./web3-indexer-config.toml:/var/lib/web3-indexer/indexer-config.toml
     working_dir: /var/lib/web3-indexer
     command: [ "gw-web3-indexer" ]
     environment:
-    - RUST_LOG=info
+      - RUST_LOG=info
+    restart: unless-stopped
     depends_on:
       web3:
         condition: service_healthy
